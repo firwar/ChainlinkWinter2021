@@ -1,0 +1,11 @@
+name: Works With Google Assistant
+description: External Adapter for Works With Google Assistant
+node_identifier: cl-wwga-nest
+platforms:
+  - GCP Functions
+data_sources:
+  - name: Nest
+    url: https://developers.google.com/nest/device-access/traits
+parameters:
+  - base
+  - quote
