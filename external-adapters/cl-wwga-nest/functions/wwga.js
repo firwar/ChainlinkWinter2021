@@ -6,8 +6,6 @@ const CLIENT_ID = functions.config().wwga.id;
 const CLIENT_SECRET = functions.config().wwga.secret;
 const PROJECT_ID = functions.config().wwga.project_id;
 
-console.log(`${CLIENT_SECRET} ${CLIENT_ID} ${PROJECT_ID}`)
-
 const MODES_TO_VALUE = {
   OFF: 0,
   HEAT: 1,
