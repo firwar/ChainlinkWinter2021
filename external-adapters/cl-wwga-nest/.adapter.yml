@@ -7,5 +7,5 @@ data_sources:
   - name: Nest
     url: https://developers.google.com/nest/device-access/traits
 parameters:
-  - base
-  - quote
+  - user
+  - timestamp
