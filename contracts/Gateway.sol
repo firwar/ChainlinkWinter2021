@@ -45,7 +45,7 @@ contract Gateway is Ownable{
     /*
      * Seller facing methods
      */
-    function creatPact(string memory nestId, uint256 region) external payable {
+    function createPact(string memory nestId, uint256 region) external payable {
 
         // Create a Listing
         Pact pact = new Pact(
