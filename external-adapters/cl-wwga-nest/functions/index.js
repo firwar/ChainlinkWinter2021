@@ -46,7 +46,7 @@ const createRequest = async (input, callback) => {
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
 exports.getThermostatInfo = functions.https.onRequest(async (request, response) => {
-  functions.logger.info(`Hello user ${request.body.user} at ${request.body.timestamp}`, {structuredData: true});
+  functions.logger.info(`Hello user ${request.body.data.user} at ${request.body.data.timestamp}`, {structuredData: true});
   createRequest(request.body, (statusCode, data) => {
     functions.logger.info(`Response data ${JSON.stringify(data)}`, {structureData: true});
     response.status(statusCode).send(data);
