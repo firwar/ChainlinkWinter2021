@@ -8,10 +8,10 @@ async function main() {
 
   console.log('Account balance:', (await deployer.getBalance()).toString());
 
-  const Pact = await ethers.getContractFactory('Pact');
-  const pact = await Pact.deploy();
+  const Gateway = await ethers.getContractFactory('Gateway');
+  const gateway = await Gateway.deploy();
 
-  console.log('Pact address:', pact.address);
+  console.log('LockAndSwapGateway address:', gateway.address);
 
 }
 
