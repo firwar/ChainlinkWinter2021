@@ -21,6 +21,7 @@ import { abis } from "../modules/contracts";
 import SignerContext from "../modules/hooks/useSigner";
 import GatewayContext from "../modules/hooks/useGateway";
 import PactContext from "../modules/hooks/usePact";
+import SidebarNav from "../modules/navigation/sideBar";
 
 const getDefaultPageLayout = (page) => page;
 
@@ -116,20 +117,14 @@ function MyApp({ Component, pageProps }) {
                     {sidebar && (
                       <Box
                         gridArea="sidebar"
-                        background="dark-3"
+                        background="neutral-2"
                         width="small"
                         animation={[
                           { type: 'fadeIn', duration: 300 },
                           { type: 'slideRight', size: 'xlarge', duration: 150 },
                         ]}
                       >
-                        {['First', 'Second', 'Third'].map((name) => (
-                          <Button key={name} href="#" hoverIndicator>
-                            <Box pad={{ horizontal: 'medium', vertical: 'small' }}>
-                              <Text>{name}</Text>
-                            </Box>
-                          </Button>
-                        ))}
+                        <SidebarNav />
                       </Box>
                     )}
                     <Box gridArea="main" justify="center" align="center" fill>
