@@ -14,14 +14,13 @@ import { Add, FormClose, StatusGood } from "grommet-icons";
 import { Contract } from "@ethersproject/contracts";
 import AppBar from "../modules/navigation/appBar";
 import WalletButton from "../modules/navigation/walletButton";
-import ListingNavButtons from "../modules/navigation/listingNavButtons";
 import LogoHeader from "../modules/navigation/logoHeader";
 import { ProviderContext } from "../modules/hooks";
-import LockAndSwapGatewayContext from "../modules/hooks/useLockAndSwapGateway";
-import ListingContext from "../modules/hooks/useListing";
 import ToastContext from "../modules/hooks/useToast";
 import { abis } from "../modules/contracts";
 import SignerContext from "../modules/hooks/useSigner";
+import GatewayContext from "../modules/hooks/useGateway";
+import PactContext from "../modules/hooks/usePact";
 
 const getDefaultPageLayout = (page) => page;
 
@@ -31,15 +30,15 @@ function MyApp({ Component, pageProps }) {
 
   // Context
   const [provider, setProvider] = useState(null);
-  const [lockAndSwapGateway, setLockAndSwapGateway] = useState(null);
-  const [listing, setListing] = useState(null);
+  const [gateway, setGateway] = useState(null);
+  const [pact, setPact] = useState(null);
   const [toast, setToast] = useState(null);
   const [signer, setSigner] = useState(null);
 
   // Values for Providers
   const providerValue = { provider, setProvider };
-  const gatewayValue = { lockAndSwapGateway, setLockAndSwapGateway };
-  const listingValue = { listing, setListing };
+  const gatewayValue = { gateway, setGateway };
+  const pactValue = { pact, setPact };
   const signerValue = { signer, setSigner };
   const toastValue = { toast, setToast };
 
@@ -51,13 +50,10 @@ function MyApp({ Component, pageProps }) {
     if (provider === null) {
       return;
     }
-    setLockAndSwapGateway(
+    setGateway(
       new Contract(
-        //"0x98Bfe4e725285E2696Aa4a125b171f82bb5af0B1", // kovan
-        "0xbaE92eCf99cd1fEA6Dfe0C630e2e0b31Dd50AB8D", //Mumbai
-        //"0x064CFA230CB6cDdDe57D30f38DfCfBf7A2786272", // Mumbai
-        //"0x83E3BE4B89EbaB7C65c5695ED31Fd07e42Aac6dB", // Kovan
-        abis.LockAndSwapGateway.abi,
+        "0x9488548bA591Eabe11b94C2788CD9a144f68e127", // Kovan
+        abis.Gateway.abi,
         provider
       )
     );
@@ -91,8 +87,8 @@ function MyApp({ Component, pageProps }) {
       <Box fill>
         <ProviderContext.Provider value={providerValue}>
           <SignerContext.Provider value={signerValue}>
-            <LockAndSwapGatewayContext.Provider value={gatewayValue}>
-              <ListingContext.Provider value={listingValue}>
+            <GatewayContext.Provider value={gatewayValue}>
+              <PactContext.Provider value={pactValue}>
                 <ToastContext.Provider value={toastValue}>
                   <Grid
                     columns={["1"]}
@@ -105,15 +101,6 @@ function MyApp({ Component, pageProps }) {
                         <LogoHeader />
                         <WalletButton />
                       </AppBar>
-                    </Box>
-                    <Box
-                      border={{ side: "bottom", color: "border" }}
-                      margin="none"
-                      pad="none"
-                      align="start"
-                      justify="start"
-                    >
-                      <ListingNavButtons />
                     </Box>
                     <Box flex>
                       {getPageLayout(<Component {...pageProps} />)}
@@ -147,8 +134,8 @@ function MyApp({ Component, pageProps }) {
                     </Layer>
                   )}
                 </ToastContext.Provider>
-              </ListingContext.Provider>
-            </LockAndSwapGatewayContext.Provider>
+              </PactContext.Provider>
+            </GatewayContext.Provider>
           </SignerContext.Provider>
         </ProviderContext.Provider>
       </Box>

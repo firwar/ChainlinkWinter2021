@@ -16,7 +16,7 @@ function useWeb3Modal(config = {}) {
   const [web3Modal, setWeb3Modal] = useState(null);
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState('');
-  const { autoLoad = true, infuraId = DEFAULT_INFURA_ID, NETWORK = DEFAULT_NETWORK_NAME } = config;
+  const { autoLoad = false, infuraId = DEFAULT_INFURA_ID, NETWORK = DEFAULT_NETWORK_NAME } = config;
   const { setProvider } = useContext(ProviderContext);
 
   useEffect(() => {
