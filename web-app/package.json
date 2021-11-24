@@ -14,7 +14,7 @@
     "@iconify/react": "^1.1.4",
     "@walletconnect/web3-provider": "^1.4.1",
     "ethers": "^5.3.1",
-    "grommet": "^2.17.3",
+    "grommet": "^2.19.1",
     "grommet-icons": "^4.6.0",
     "next": "11.0.0",
     "next-compose-plugins": "^2.2.1",

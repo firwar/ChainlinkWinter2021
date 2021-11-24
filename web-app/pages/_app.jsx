@@ -132,7 +132,7 @@ function MyApp({ Component, pageProps }) {
                         ))}
                       </Box>
                     )}
-                    <Box gridArea="main" justify="center" align="center">
+                    <Box gridArea="main" justify="center" align="center" fill>
                       {getPageLayout(<Component {...pageProps} />)}
                     </Box>
                   </Grid>

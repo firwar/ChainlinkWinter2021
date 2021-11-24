@@ -7,7 +7,7 @@ const LogoHeader = () => {
     console.log(query);
   };
   return (
-    <Link href="/pact">
+    <Link href="/gateway">
       <Box
         gap="small"
         margin="none"
