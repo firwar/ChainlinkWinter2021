@@ -30,7 +30,7 @@ const Pact = ({ address }) => {
   const { usePact } = useContext(PactContext);
 
   return (
-    <Box align="center" justify="start" pad="large">
+    <Box align="center" justify="start" pad="medium">
       <DataChart
         data={data}
         series={[

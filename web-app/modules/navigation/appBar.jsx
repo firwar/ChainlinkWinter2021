@@ -3,6 +3,7 @@ import { Box } from "grommet";
 
 const AppBar = (props) => (
   <Box
+    fill
     tag="header"
     direction="row-responsive"
     align="center"
