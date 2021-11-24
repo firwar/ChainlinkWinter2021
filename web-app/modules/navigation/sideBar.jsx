@@ -1,4 +1,5 @@
 import {Box, Button, Grommet, Nav, Text} from "grommet";
+import { useRouter } from "next/router";
 import {useState} from "react";
 
 const SidebarButton = ({ label, ...rest }) => (
@@ -14,12 +15,22 @@ const SidebarButton = ({ label, ...rest }) => (
   </Button>
 );
 
+const navMap = {
+  'Leaderboard': 'leaderboard',
+  'Available Campaigns': 'listings',
+  'My Progress': 'pact'
+}
+
 const SidebarNav = () => {
-  const [active, setActive] = useState();
+  const router = useRouter();
+
+  const onClick = (route) => {
+    router.push(route)
+  }
   return (
     <Box>
       {['Leaderboard', 'Available Campaigns', 'My Progress'].map((name) => (
-        <Button key={name} href={name} hoverIndicator>
+        <Button key={name} onClick={() => onClick(navMap[name])} hoverIndicator>
           <Box pad={{ horizontal: 'medium', vertical: 'small' }}>
             <Text>{name}</Text>
           </Box>
