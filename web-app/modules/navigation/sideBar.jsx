@@ -16,6 +16,7 @@ const SidebarButton = ({ label, ...rest }) => (
 );
 
 const navMap = {
+  'Home': 'gateway',
   'Leaderboard': 'leaderboard',
   'Available Campaigns': 'listings',
   'My Progress': 'pact'
@@ -29,7 +30,7 @@ const SidebarNav = () => {
   }
   return (
     <Box>
-      {['Leaderboard', 'Available Campaigns', 'My Progress'].map((name) => (
+      {Object.keys(navMap).map((name) => (
         <Button key={name} onClick={() => onClick(navMap[name])} hoverIndicator>
           <Box pad={{ horizontal: 'medium', vertical: 'small' }}>
             <Text>{name}</Text>
