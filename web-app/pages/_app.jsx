@@ -39,10 +39,6 @@ function MyApp({ Component, pageProps }) {
   // UI
   const [sidebar, setSidebar] = useState(true);
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
   // Values for Providers
   const providerValue = { provider, setProvider };
   const gatewayValue = { gateway, setGateway };
@@ -100,15 +96,6 @@ function MyApp({ Component, pageProps }) {
                 <ToastContext.Provider value={toastValue}>
                   <Grid
                     fill
-<<<<<<< HEAD
-                    rows={['auto', 'flex']}
-                    columns={['auto', 'flex']}
-                    areas={[
-                      { name: 'header', start: [0, 0], end: [1, 0] },
-                      { name: 'sidebar', start: [0, 1], end: [0, 1] },
-                      { name: 'main', start: [1, 1], end: [1, 1] },
-                    ]}>
-=======
                     rows={["auto", "flex"]}
                     columns={["auto", "flex"]}
                     areas={[
@@ -117,17 +104,12 @@ function MyApp({ Component, pageProps }) {
                       { name: "main", start: [1, 1], end: [1, 1] },
                     ]}
                   >
->>>>>>> origin/master
                     <Box
                       gridArea="header"
                       direction="row"
                       align="center"
-<<<<<<< HEAD
-                      justify="between">
-=======
                       justify="between"
                     >
->>>>>>> origin/master
                       <AppBar>
                         <LogoHeader />
                         <WalletButton />
@@ -139,13 +121,8 @@ function MyApp({ Component, pageProps }) {
                         background="neutral-2"
                         width="small"
                         animation={[
-<<<<<<< HEAD
-                          { type: 'fadeIn', duration: 300 },
-                          { type: 'slideRight', size: 'xlarge', duration: 150 },
-=======
                           { type: "fadeIn", duration: 300 },
                           { type: "slideRight", size: "xlarge", duration: 150 },
->>>>>>> origin/master
                         ]}
                       >
                         <SidebarNav />
