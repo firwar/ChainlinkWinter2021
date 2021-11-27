@@ -90,6 +90,7 @@ contract Pact is Ownable, ChainlinkClient {
     uint256 private KEEPER_UPDATE_NUM_BLOCKS = 5;
 
     uint8 public EIARegion = 0;
+    int64 public TotalInterchangeThreshold = -500;
 
     constructor(string ownerName, uint8 region) public {
         // Chainlink EIA Node
@@ -107,15 +108,18 @@ contract Pact is Ownable, ChainlinkClient {
     }
 
 
-    function startNewCycle() external {
+    function startNewCycle() external onlyOwner {
 
     }
 
-    function changeConditions(uint256 demandThreshold) external {
+    /*
+     * If interchange exceeds this threshold grid is under stress
+     */
+    function changeConditions(int64 demandThreshold) external onlyOwner {
 
     }
 
-    function terminatePact() external {
+    function terminatePact() external onlyOwner {
 
     }
 
@@ -155,11 +159,11 @@ contract Pact is Ownable, ChainlinkClient {
     }
 
 
-    function disablePact() external {
+    function disablePact() external onlyOwner {
 
     }
 
-    function enablePact() external {
+    function enablePact() external onlyOwner {
 
     }
 
