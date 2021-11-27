@@ -39,7 +39,6 @@ function MyApp({ Component, pageProps }) {
   // UI
   const [sidebar, setSidebar] = useState(true);
 
-
   // Values for Providers
   const providerValue = { provider, setProvider };
   const gatewayValue = { gateway, setGateway };
@@ -97,18 +96,20 @@ function MyApp({ Component, pageProps }) {
                 <ToastContext.Provider value={toastValue}>
                   <Grid
                     fill
-                    rows={['auto', 'flex']}
-                    columns={['auto', 'flex']}
+                    rows={["auto", "flex"]}
+                    columns={["auto", "flex"]}
                     areas={[
-                      { name: 'header', start: [0, 0], end: [1, 0] },
-                      { name: 'sidebar', start: [0, 1], end: [0, 1] },
-                      { name: 'main', start: [1, 1], end: [1, 1] },
-                    ]}>
+                      { name: "header", start: [0, 0], end: [1, 0] },
+                      { name: "sidebar", start: [0, 1], end: [0, 1] },
+                      { name: "main", start: [1, 1], end: [1, 1] },
+                    ]}
+                  >
                     <Box
                       gridArea="header"
                       direction="row"
                       align="center"
-                      justify="between">
+                      justify="between"
+                    >
                       <AppBar>
                         <LogoHeader />
                         <WalletButton />
@@ -120,8 +121,8 @@ function MyApp({ Component, pageProps }) {
                         background="neutral-2"
                         width="small"
                         animation={[
-                          { type: 'fadeIn', duration: 300 },
-                          { type: 'slideRight', size: 'xlarge', duration: 150 },
+                          { type: "fadeIn", duration: 300 },
+                          { type: "slideRight", size: "xlarge", duration: 150 },
                         ]}
                       >
                         <SidebarNav />
