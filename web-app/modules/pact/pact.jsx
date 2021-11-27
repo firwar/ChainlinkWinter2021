@@ -212,7 +212,7 @@ const Pact = ({ address }) => {
             bounds="align"
             gap="xsmall"
             pad="small"
-            size="large"
+            size={{ width: "large", height: "large" }}
             margin="small"
             detail
           />
