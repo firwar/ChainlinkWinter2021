@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/escrow/Escrow.sol";
 
 
 /* ------   NOTES    -----------
@@ -40,17 +41,14 @@ contract Pact is Ownable, ChainlinkClient {
         uint coolSetpoint;
     }
 
-    enum PactState { Disabled, Idle, Running }
-    
+    enum PactState { Disabled, Idle, Running, Complete }
+
     // Events
     event RequestingNestData(uint numberOfNestRequests);
     event CalculatingUserCompliance(address user, bool compliant);
     event RequestingEIAData();
 
-
     PactState public pactState;
-    uint public lastBlockNumberEIA;
-    uint public lastBlockNumberKeeper;
 
     // Demand threshold before thermostat is controlled in megaWattHours
     uint256 public demandThreshold;
@@ -59,8 +57,15 @@ contract Pact is Ownable, ChainlinkClient {
     // Minimum cool set point allowable
     uint256 public demandCoolSetpoint;
 
+    address public campaignAddress;
+    uint public campaignReward;
+    uint public startTimeStamp;
+    uint public lastBlockNumberEIA;
+    uint public lastBlockNumberKeeper;
+
+
     // The energy count for each cycle
-    mapping (uint256 => uint256) private cycleToEnergyCount; 
+    mapping (uint256 => uint256) private cycleToEnergyCount;
 
     mapping ( address => NestData[] ) public userAddressToNestData;
     
@@ -68,7 +73,7 @@ contract Pact is Ownable, ChainlinkClient {
 
     // demand data stored
     mapping ( uint256 => uint256[] ) public regionToDemandData;
-    
+
     // user address mapping to compliance data list of whether user was compliant
     // during check (1's and 0's)
     mapping ( address => uint256[] ) public userAddressToComplianceData;
@@ -80,8 +85,6 @@ contract Pact is Ownable, ChainlinkClient {
     // Participants in current pact
     address[] public participants;
 
-
-
     // EA Information
     address private nestOracle = 0xa94fcD7aaeD52a5D8a525319B16b4d3296a02F6A;
     bytes32 private nestJobId = "fc173fc92d5748cc8d76ceb21d442a56";
@@ -90,20 +93,34 @@ contract Pact is Ownable, ChainlinkClient {
     // EA Information for API Oracle EIA
     address private EIAOracle = 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8;
     bytes32 private EIAJobId = "d5270d1c311941d0b08bead21fea7747";
-    uint256 private EIAFee = 0.1 * 10 ** 18;  
+    uint256 private EIAFee = 0.1 * 10 ** 18;
 
     // Some block stuff rough estimate assuming ~ 13 seconds per block
-    uint8 private blocksPerFiveMinutes = 5;
+//    uint8 private blocksPerFiveMinutes = 5;
 
-    // 30 minutes worth of blocks = (60 seconds / minutes) * (30 minutes) / (10 seconds / block) 
+    // 30 minutes worth of blocks = (60 seconds / minutes) * (30 minutes) / (10 seconds / block)
     uint256 private EIA_UPDATE_NUM_BLOCKS = 60 * 30 / 10;
     uint256 private KEEPER_UPDATE_NUM_BLOCKS = 5;
 
-    constructor() public {
+    uint256 public EIARegion = 0;
+    int64 public TotalInterchangeThreshold = -500;
+
+    Escrow escrow;
+
+    constructor(address ownerAddress, uint256 region, uint256 reward) public {
         // Chainlink EIA Node
         setPublicChainlinkToken();
-        
+
+        // Setup meta
+        EIARegion = region;
+        campaignAddress = ownerAddress;
+        campaignReward = reward;
+        // Create new refund escrow
+        escrow = new Escrow();
+        // Transfer ownership to owner of this pact
+        escrow.transferOwnership(ownerAddress);
         // Update to current block number
+        startTimeStamp = block.timestamp;
         lastBlockNumberEIA = block.number;
         lastBlockNumberKeeper = block.number;
 
@@ -118,7 +135,7 @@ contract Pact is Ownable, ChainlinkClient {
         userAddressToPactState[msg.sender] = PactState.Idle;
     }
  
-    function startNewCycle() external {
+    function startNewCycle() external onlyOwner {
 
     }
 
@@ -128,7 +145,7 @@ contract Pact is Ownable, ChainlinkClient {
         demandCoolSetpoint = _coolSetpoint;
     }
 
-    function terminatePact() external {
+    function terminatePact() external onlyOwner {
 
     }
 
@@ -137,11 +154,7 @@ contract Pact is Ownable, ChainlinkClient {
      */
     function checkUpkeep(bytes calldata checkData) public view returns(bool, bytes memory) {
         // Check the block number target for ~ 5 min intervals
-
-        //return(block.number % blocksPerFiveMinutes == 0, bytes(""));
-
         return(block.number - lastBlockNumberKeeper > KEEPER_UPDATE_NUM_BLOCKS, bytes(""));
-        
     }
 
     function performUpkeep(bytes calldata performData) external {
@@ -166,6 +179,10 @@ contract Pact is Ownable, ChainlinkClient {
 
     function enablePact() external {
         userAddressToPactState[msg.sender] = PactState.Idle;
+    }
+
+    function startPact() external onlyOwner {
+        require(escrow.depositsOf(campaignAddress) >= campaignReward, "Need to fund campaign");
     }
 
     function requestPayout() external {
@@ -199,7 +216,6 @@ contract Pact is Ownable, ChainlinkClient {
         string memory s = bytes32ToString(responseData);
         string[] memory splitResults;
         splitResults = stringSplit(s, ",");
-
         // temp variables required for converting to uint
         // EA format
         // data: `${thermostatInfo.mode},${thermostatInfo.temperature},${thermostatInfo.heatSetpoint},${thermostatInfo.coolSetpoint}`
@@ -214,7 +230,7 @@ contract Pact is Ownable, ChainlinkClient {
         temperature = stringToUint(splitResults[1]);
         heatSetpoint = stringToUint(splitResults[2]);
         coolSetpoint = stringToUint(splitResults[3]);
-        
+
         // Store information as a struct for user
         require(userAddress != address(0), "Invalid address");
         userAddressToNestData[userAddress].push(NestData(mode, temperature, heatSetpoint, coolSetpoint));
@@ -261,17 +277,17 @@ contract Pact is Ownable, ChainlinkClient {
         lastBlockNumberKeeper = block.number;
 
         // TODO: Check the score for this user
-       
+
         // TODO: Check if we need to update EIA Temperature
     }
 
    /**
      * Request demand data in megawatthours of a specific region
      */
-    function requestDataEIA(uint256 region_num) public returns (bytes32 requestId) 
+    function requestDataEIA(uint256 region_num) public returns (bytes32 requestId)
     {
         Chainlink.Request memory request = buildChainlinkRequest(EIAJobId, address(this), this.fulfillEIA.selector);
-        
+
         //if (region_num == 1) {
         // California
         request.add("get", "https://api.eia.gov/series/?series_id=EBA.CAL-ALL.D.HL&api_key=6eb4a901178943422d098f04d025be8c&num=1");
@@ -294,7 +310,7 @@ contract Pact is Ownable, ChainlinkClient {
             request.add("get", "https://api.eia.gov/series/?series_id=EBA.MIDW-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         } else if (region_num == 7) {
             // New England
-            request.add("get", "https://api.eia.gov/series/?series_id=EBA.NE-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");            
+            request.add("get", "https://api.eia.gov/series/?series_id=EBA.NE-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         } else if (region_num == 8) {
             // New York
             request.add("get", "https://api.eia.gov/series/?series_id=EBA.NY-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
@@ -312,18 +328,18 @@ contract Pact is Ownable, ChainlinkClient {
             request.add("get", "https://api.eia.gov/series/?series_id=EBA.TEN-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         } else if (region_num == 13) {
             // Texas
-            request.add("get", "https://api.eia.gov/series/?series_id=EBA.TEX-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");            
+            request.add("get", "https://api.eia.gov/series/?series_id=EBA.TEX-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         }
-        */ 
+        */
         request.add("path", "series.0.data.0.1");
        
         // Sends the request
         return sendChainlinkRequestTo(EIAOracle, request, EIAFee);
     }
-    
+
     /**
      * Receive the response in the form of uint256
-     */ 
+     */
     function fulfillEIA(bytes32 _requestId, uint256 _demand) public recordChainlinkFulfillment(_requestId)
     {
         regionToDemandData[0].push(_demand);

@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Pact.sol";
 
 // This is the main building block for smart contracts.
-contract Gateway is Ownable{
+contract Gateway is Ownable {
 
     // Use counter to track all ids
     using Counters for Counters.Counter;
@@ -31,7 +31,7 @@ contract Gateway is Ownable{
 
 
     function getAllPacts() external view returns (address[] memory) {
-        
+
         // Allocate new array for the pact list
         address[] memory allPacts = new address[](_numOfPacts.current());
 
@@ -45,12 +45,10 @@ contract Gateway is Ownable{
     /*
      * Seller facing methods
      */
-    function createPact(string memory nestId, uint256 region) external payable {
+    function createPact(uint256 region, uint256 reward) external payable {
 
         // Create a Listing
-        Pact pact = new Pact(
-
-        );
+        Pact pact = new Pact(msg.sender, region, reward);
 
         // Emit event
         emit PactCreated(msg.sender, address(pact));
