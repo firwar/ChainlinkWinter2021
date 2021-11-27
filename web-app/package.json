@@ -14,6 +14,7 @@
     "@iconify/react": "^1.1.4",
     "@walletconnect/web3-provider": "^1.4.1",
     "ethers": "^5.3.1",
+    "got": "^11.8.3",
     "grommet": "^2.19.1",
     "grommet-icons": "^4.6.0",
     "moment": "^2.29.1",
