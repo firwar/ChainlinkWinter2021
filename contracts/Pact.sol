@@ -40,35 +40,37 @@ contract Pact is Ownable, ChainlinkClient {
         uint coolSetpoint;
     }
 
-    enum PactState { Disabled, Idle, Running }
-    
+    enum PactState { Disabled, Idle, Running, Complete }
+
     // Events
     event RequestingNestData(uint numberOfNestRequests);
     event CalculatingUserCompliance(address user, bool compliant);
     event RequestingEIAData();
 
+    string public campaignOwnerName;
+    uint public startTimeStamp;
     uint public lastBlockNumberEIA;
     uint public lastBlockNumberKeeper;
+
     // The count of number of times we are compliant in this cycle
     uint256 public energyCountCycle;
 
     // The energy count for each cycle
-    mapping (uint256 => uint256) private cycleToEnergyCount; 
+    mapping (uint256 => uint256) private cycleToEnergyCount;
 
     mapping ( address => NestData[] ) public userAddressToNestData;
-    
+
     // demand data stored
     mapping ( uint256 => uint256[] ) public regionToDemandData;
-    
+
     // user address mapping to compliance data list of whether user was compliant
     // during check (1's and 0's)
-    mapping ( address => uint256[] ) public userAddressToComplianceData;
+    mapping ( address => bool ) public userAddressToComplianceData;
 
     mapping ( bytes32 => address) private requestIdToUserAddress;
 
     // Participants in current pact
     address[] public participants;
-
 
     // EA Information
     address private nestOracle = 0xa94fcD7aaeD52a5D8a525319B16b4d3296a02F6A;
@@ -78,27 +80,33 @@ contract Pact is Ownable, ChainlinkClient {
     // EA Information for API Oracle EIA
     address private EIAOracle = 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8;
     bytes32 private EIAJobId = "d5270d1c311941d0b08bead21fea7747";
-    uint256 private EIAFee = 0.1 * 10 ** 18;  
+    uint256 private EIAFee = 0.1 * 10 ** 18;
 
     // Some block stuff rough estimate assuming ~ 13 seconds per block
-    uint8 private blocksPerFiveMinutes = 5;
+//    uint8 private blocksPerFiveMinutes = 5;
 
-    // 30 minutes worth of blocks = (60 seconds / minutes) * (30 minutes) / (10 seconds / block) 
+    // 30 minutes worth of blocks = (60 seconds / minutes) * (30 minutes) / (10 seconds / block)
     uint256 private EIA_UPDATE_NUM_BLOCKS = 60 * 30 / 10;
     uint256 private KEEPER_UPDATE_NUM_BLOCKS = 5;
 
-    constructor() public {
+    uint8 public EIARegion = 0;
+
+    constructor(string ownerName, uint8 region) public {
         // Chainlink EIA Node
         setPublicChainlinkToken();
-        
+
+        // Setup meta
+        campaignOwnerName = ownerName;
+        EIARegion = region;
+
         // Update to current block number
+        startTimeStamp = block.timestamp;
         lastBlockNumberEIA = block.number;
         lastBlockNumberKeeper = block.number;
         participants.push(msg.sender);
-        
     }
 
- 
+
     function startNewCycle() external {
 
     }
@@ -116,10 +124,7 @@ contract Pact is Ownable, ChainlinkClient {
      */
     function checkUpkeep(bytes calldata checkData) public view returns(bool, bytes memory) {
         // Check the block number target for ~ 5 min intervals
-
-        //return(block.number % blocksPerFiveMinutes == 0, bytes(""));
         return(block.number - lastBlockNumberKeeper > KEEPER_UPDATE_NUM_BLOCKS, bytes(""));
-        
     }
 
     function performUpkeep(bytes calldata performData) external {
@@ -129,10 +134,10 @@ contract Pact is Ownable, ChainlinkClient {
             requestGoogleNestData(participants[i]);
         }
         // Check if we should call the EIA update
-        //if (block.number - lastBlockNumberEIA > EIA_UPDATE_NUM_BLOCKS) {
+        if (block.number - lastBlockNumberEIA > EIA_UPDATE_NUM_BLOCKS) {
             bytes32 requestIdRegion0 = requestDataEIA(0);
             // TODO: Update to request all regions or potentially use better API call
-        //}
+        }
         lastBlockNumberEIA = block.number;
         lastBlockNumberKeeper = block.number;
     }
@@ -177,12 +182,13 @@ contract Pact is Ownable, ChainlinkClient {
         requestIdToUserAddress[_requestId] = user;
         return _requestId;
     }
+
     /**
      * Index Of
      *
      * Locates and returns the position of a character within a string starting
      * from a defined offset
-     * 
+     *
      * @param _base When being used for a data type this is the extended object
      *              otherwise this is the string acting as the haystack to be
      *              searched
@@ -289,7 +295,7 @@ contract Pact is Ownable, ChainlinkClient {
         string memory s = bytes32ToString(responseData);
         string[] memory splitResults;
         splitResults = stringSplit(s, ",");
-/* 
+/*
         string memory s = bytes32ToString(responseData).toSlice();
         string memory delim = ",".toSlice();
 
@@ -321,23 +327,23 @@ contract Pact is Ownable, ChainlinkClient {
         temperature = stringToUint(splitResults[1]);
         heatSetpoint = stringToUint(splitResults[2]);
         coolSetpoint = stringToUint(splitResults[3]);
-        
+
         // Store information as a struct for user
         require(userAddress != address(0), "Invalid address");
         userAddressToNestData[userAddress].push(NestData(mode, temperature, heatSetpoint, coolSetpoint));
 
         // TODO: Check the score for this user
-       
+
         // TODO: Check if we need to update EIA Temperature
     }
 
    /**
      * Request demand data in megawatthours of a specific region
      */
-    function requestDataEIA(uint256 region_num) public returns (bytes32 requestId) 
+    function requestDataEIA(uint256 region_num) public returns (bytes32 requestId)
     {
         Chainlink.Request memory request = buildChainlinkRequest(EIAJobId, address(this), this.fulfillEIA.selector);
-        
+
         //if (region_num == 1) {
         // California
         request.add("get", "https://api.eia.gov/series/?series_id=EBA.CAL-ALL.D.HL&api_key=6eb4a901178943422d098f04d025be8c&num=1");
@@ -360,7 +366,7 @@ contract Pact is Ownable, ChainlinkClient {
             request.add("get", "https://api.eia.gov/series/?series_id=EBA.MIDW-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         } else if (region_num == 7) {
             // New England
-            request.add("get", "https://api.eia.gov/series/?series_id=EBA.NE-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");            
+            request.add("get", "https://api.eia.gov/series/?series_id=EBA.NE-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         } else if (region_num == 8) {
             // New York
             request.add("get", "https://api.eia.gov/series/?series_id=EBA.NY-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
@@ -378,18 +384,18 @@ contract Pact is Ownable, ChainlinkClient {
             request.add("get", "https://api.eia.gov/series/?series_id=EBA.TEN-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         } else if (region_num == 13) {
             // Texas
-            request.add("get", "https://api.eia.gov/series/?series_id=EBA.TEX-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");            
+            request.add("get", "https://api.eia.gov/series/?series_id=EBA.TEX-ALL.D.HL&api_key=4b97470094bf5cb0fb2e0bd02c776837&num=1");
         }
-        */ 
+        */
         request.add("path", "series.0.data.0.1");
-        
+
         // Sends the request
         return sendChainlinkRequestTo(EIAOracle, request, EIAFee);
     }
-    
+
     /**
      * Receive the response in the form of uint256
-     */ 
+     */
     function fulfillEIA(bytes32 _requestId, uint256 _demand) public recordChainlinkFulfillment(_requestId)
     {
         regionToDemandData[0].push(_demand);

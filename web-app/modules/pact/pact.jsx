@@ -62,8 +62,11 @@ const Pact = ({ address }) => {
   const [gridLoad, setGridLoad] = useState([]);
 
   const getEIAData = async () => {
+    const start = "11192021 08:00";
+    const end = moment().utc().format("MMDDYYYY HH:00:00");
+    console.log(end);
     const response = await fetch(
-      "https://www.eia.gov/electricity/930-api/region_data/series_data?type[0]=TI&respondent[0]=LDWP&start=11192021 08:00:00&end=11272021 08:00:00&frequency=hourly&timezone=Pacific&limit=10000&offset=0"
+      `https://www.eia.gov/electricity/930-api/region_data/series_data?type[0]=TI&respondent[0]=LDWP&start=11192021 08:00:00&end=${end}&frequency=hourly&timezone=Pacific&limit=10000&offset=0`
     );
     const jsonData = await response.json();
     const data = jsonData[0];
@@ -83,9 +86,13 @@ const Pact = ({ address }) => {
         date: date_values[idx],
       };
     });
+    // TODO remove; debug for now;
     console.log(data_points);
     setGridLoad(data_points);
+    return data_points;
   };
+
+  // TODO remove; debug for now;
   useEffect(() => {
     getEIAData();
   }, []);
@@ -127,6 +134,8 @@ const Pact = ({ address }) => {
       //   uint heatSetpoint;
       //   uint coolSetpoint;
       // }
+      // Dates + Total Interchange(TI)
+      const eiaData = await getEIAData();
       setNestData(_nestData);
       setComplianceData(_complianceData);
       // eslint-disable-next-line no-prototype-builtins
@@ -164,7 +173,14 @@ const Pact = ({ address }) => {
                   </Box>
                 ),
               },
-              "amount",
+              {
+                property: "amount",
+                render: (amount) => (
+                  <Box pad="xsmall" align="start">
+                    <Text>{amount}</Text>
+                  </Box>
+                ),
+              },
             ]}
             chart={[
               {
@@ -198,6 +214,7 @@ const Pact = ({ address }) => {
             pad="small"
             size="large"
             margin="small"
+            detail
           />
         </Box>
       )}
