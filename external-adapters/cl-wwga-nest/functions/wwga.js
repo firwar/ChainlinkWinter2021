@@ -88,11 +88,94 @@ const getDeviceTraitTemperature = async (userAddress, accessToken, timestamp) =>
   }
 };
 
+const setThermostatMode = async(userAddress, mode) => {
+  // Get DeviceId from Firebase Storage
+  const deviceId = await getUserDeviceId(userAddress);
+
+  // Retrieve Data
+  const request_url = `https://smartdevicemanagement.googleapis.com/v1/enterprises/${PROJECT_ID}/devices/${deviceId}:executeCommand`;
+  try {
+    // Command returns nothing so assume non 200 is failure
+    await got.post(request_url, {
+      json: {
+        "command": "sdm.devices.commands.ThermostatMode.SetMode",
+        "params": {
+          "mode": mode
+        }
+      },
+      responseType: "json",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    })
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const setThermostatTemperatureSetRange = async(userAddress, accessToken, setRangeHeat, setRangeCool) => {
+  // Get DeviceId from Firebase Storage
+  const deviceId = await getUserDeviceId(userAddress);
+
+  // Retrieve Data
+  const request_url = `https://smartdevicemanagement.googleapis.com/v1/enterprises/${PROJECT_ID}/devices/${deviceId}:executeCommand`;
+
+  try {
+    // Command returns nothing so assume non 200 is failure
+    // Make sure we're in HEATCOOL first
+    await got.post(request_url, {
+      json: {
+        "command" : "sdm.devices.commands.ThermostatMode.SetMode",
+        "params" : {
+          "mode": "HEATCOOL"
+        }
+      },
+      responseType: "json",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    })
+    // TODO add some delay as this takes ~ 5s
+    // Then set the range
+    await got.post(request_url, {
+      json: {
+        "command" : "sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
+        "params" : {
+          "heatCelsius" : setRangeHeat,
+          "coolCelsius" : setRangeCool
+        }
+      },
+      responseType: "json",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    })
+    console.log('Commanded thermostat successfully');
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+
+}
+
 const getThermostatInfo = async (userAddress, timestamp) => {
   const accessToken = await getAccessToken(userAddress);
   return await getDeviceTraitTemperature(userAddress, accessToken, timestamp);
 };
 
+const setThermostatRange = async(userAddress, setRangeHeat, setRangeCool) => {
+  const accessToken = await getAccessToken(userAddress);
+  return await setThermostatTemperatureSetRange(userAddress, accessToken, setRangeHeat, setRangeCool);
+}
+
+const setThermostatModeOff = async(userAddress) => {
+  const accessToken = await getAccessToken(userAddress);
+  return await setThermostatMode(userAddress, "OFF");
+}
+
 module.exports = {
-  getThermostatInfo
+  getThermostatInfo,
+  setThermostatRange,
+  setThermostatModeOff
 }

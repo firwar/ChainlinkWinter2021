@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 const { Requester, Validator } = require("@chainlink/external-adapter");
-const { getThermostatInfo } = require('./wwga');
+const { getThermostatInfo, setThermostatRange} = require('./wwga');
 
 // Define custom error scenarios for the API.
 // Return true for the adapter to retry.
@@ -21,6 +21,7 @@ const customError = (data) => {
 const customParams = {
   user: "user",
   timestamp: "timestamp",
+  action: "action",
 };
 
 
@@ -28,18 +29,28 @@ const createRequest = async (input, callback) => {
   // The Validator helps you validate the Chainlink request data
   const validator = new Validator(callback, input, customParams);
   const jobRunID = validator.validated.id;
-  const { user, timestamp } = validator.validated.data;
+  const { user, timestamp, action } = validator.validated.data;
 
-  const thermostatInfo = await getThermostatInfo(user, timestamp);
-
-  const response = {
-    jobRunID,
-    data: `${thermostatInfo.mode},${thermostatInfo.temperature},${thermostatInfo.heatSetpoint},${thermostatInfo.coolSetpoint}`,
-    result: null,
-    statusCode: 200,
-  };
-
-  callback(response.statusCode, response);
+  if (action === "info") {
+    const thermostatInfo = await getThermostatInfo(user, timestamp);
+    const response = {
+      jobRunID,
+      data: `${thermostatInfo.mode},${thermostatInfo.temperature},${thermostatInfo.heatSetpoint},${thermostatInfo.coolSetpoint}`,
+      result: null,
+      statusCode: 200,
+    };
+    callback(response.statusCode, response);
+  } else if (action === "command") {
+    console.log(`Received command for set range - heat ${input.data.rangeHeat} - cool ${input.data.rangeCool}`);
+    const thermostatInfo = await setThermostatRange(user, input.data.rangeHea, input.data.rangeCool);
+    const response = {
+      jobRunID,
+      data: `${thermostatInfo.mode},${thermostatInfo.temperature},${thermostatInfo.heatSetpoint},${thermostatInfo.coolSetpoint}`,
+      result: null,
+      statusCode: 200,
+    };
+    callback(response.statusCode, response);
+  }
 };
 
 // // Create and Deploy Your First Cloud Functions
