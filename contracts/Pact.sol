@@ -6,6 +6,7 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/escrow/Escrow.sol";
 
 
 /* ------   NOTES    -----------
@@ -47,7 +48,8 @@ contract Pact is Ownable, ChainlinkClient {
     event CalculatingUserCompliance(address user, bool compliant);
     event RequestingEIAData();
 
-    string public campaignOwnerName;
+    address public campaignAddress;
+    uint public campaignReward;
     uint public startTimeStamp;
     uint public lastBlockNumberEIA;
     uint public lastBlockNumberKeeper;
@@ -89,17 +91,23 @@ contract Pact is Ownable, ChainlinkClient {
     uint256 private EIA_UPDATE_NUM_BLOCKS = 60 * 30 / 10;
     uint256 private KEEPER_UPDATE_NUM_BLOCKS = 5;
 
-    uint8 public EIARegion = 0;
+    uint256 public EIARegion = 0;
     int64 public TotalInterchangeThreshold = -500;
 
-    constructor(string ownerName, uint8 region) public {
+    Escrow escrow;
+
+    constructor(address ownerAddress, uint256 region, uint256 reward) public {
         // Chainlink EIA Node
         setPublicChainlinkToken();
 
         // Setup meta
-        campaignOwnerName = ownerName;
         EIARegion = region;
-
+        campaignAddress = ownerAddress;
+        campaignReward = reward;
+        // Create new refund escrow
+        escrow = new Escrow();
+        // Transfer ownership to owner of this pact
+        escrow.transferOwnership(ownerAddress);
         // Update to current block number
         startTimeStamp = block.timestamp;
         lastBlockNumberEIA = block.number;
@@ -165,6 +173,10 @@ contract Pact is Ownable, ChainlinkClient {
 
     function enablePact() external onlyOwner {
 
+    }
+
+    function startPact() external onlyOwner {
+        require(escrow.depositsOf(campaignAddress) >= campaignReward, "Need to fund campaign");
     }
 
     function requestPayout() external {
