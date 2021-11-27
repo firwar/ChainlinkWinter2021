@@ -41,6 +41,7 @@ contract Pact is Ownable, ChainlinkClient {
         uint coolSetpoint;
     }
 
+    enum NestRequestType { Info, Command, Off }
     enum PactState { Disabled, Idle, Running, Complete }
 
     // Events
@@ -161,7 +162,7 @@ contract Pact is Ownable, ChainlinkClient {
         // Call requestNestData for each of our participants
         emit RequestingNestData(participants.length);
         for (uint256 i = 0; i < participants.length; i++) {
-            requestGoogleNestData(participants[i]);
+            requestGoogleNestData(participants[i], NestRequestType.Info, 0, 0);
         }
     }
 
@@ -194,9 +195,18 @@ contract Pact is Ownable, ChainlinkClient {
      * Create a Chainlink request to retrieve Nest data for a user
      * data, then multiply by 1000000000000000000 (to remove decimal places from data).
      */
-    function requestGoogleNestData(address user) public returns (bytes32 requestId)
+    function requestGoogleNestData(address user, NestRequestType requestType, uint8 rangeHeat, uint8 rangeCool) public returns (bytes32 requestId)
     {
         Chainlink.Request memory req = buildChainlinkRequest(nestJobId, address(this), this.fulfillNestRequest.selector);
+        if (requestType == NestRequestType.Info) {
+            req.add("action", "info");
+        } else if (requestType == NestRequestType.Command) {
+            req.add("action", "command");
+            req.add("rangeHeat", rangeHeat);
+            req.add("rangeCool", rangeCool);
+        } else if (requestType == NestRequestType.Off) {
+            req.add("action", "off");
+        }
         req.add("user", addressToString(user));
         req.addUint("timestamp", block.timestamp);
         // Sends the request
