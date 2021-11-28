@@ -31,6 +31,7 @@ describe('Pact contract', () => {
     // Insert test here
     expect(1).to.equal(1);
     await pact.populateParticipant(user.address);
+    await pact.populateParticipant(owner.address);
     //console.log(pact);
     let energy = await pact.userAddressToEnergyCountCycle(user.address);
     console.log(energy.toNumber());
@@ -40,6 +41,10 @@ describe('Pact contract', () => {
     console.log(compData);
     const tempData = await pact.getTempDataArray(user.address)
     console.log(tempData);
+
+    const participants = await pact.getParticipants();
+    console.log(participants);
+    console.log(participants.length);
 
   });
 

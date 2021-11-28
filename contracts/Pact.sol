@@ -144,6 +144,9 @@ contract Pact is Ownable, ChainlinkClient {
         }
     }
 
+    function getParticipants() external view returns (address[] memory) {
+        return participants;
+    }
     function getComplianceDataArray(address user) external view returns (uint256[] memory) {
         return userAddressToComplianceData[user];
     }

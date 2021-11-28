@@ -45,7 +45,7 @@ export const PACT_STATES = {
 };
 
 const Pact = ({ address }) => {
-  address = "0x50950a93be7BbC951fe7968d30Ce5dF88cB57387";
+  address = "0x757341e5FD0E5604bF183b5CaA2d8144059c727b";
 
   // Web3
   const { provider } = useContext(ProviderContext);

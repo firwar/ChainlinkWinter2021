@@ -10,7 +10,7 @@
     const Pact = await ethers.getContractFactory("Pact")
 
     // Edit deployed gateway address here
-    const contract = await Pact.attach("0x50950a93be7BbC951fe7968d30Ce5dF88cB57387")
+    const contract = await Pact.attach("0x757341e5FD0E5604bF183b5CaA2d8144059c727b")
 
     await contract.populateParticipant(deployer.address);
     //await contract.userAddressToNestData(deployer.address,0)
