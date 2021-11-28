@@ -23,7 +23,7 @@ for (let i = 0; i < 13; i += 1) {
   const v = -Math.sin(i / 2.0);
   data.push({
     date: `2020-07-${((i % 30) + 1).toString().padStart(2, 0)}`,
-    amount: Math.floor(v * 100),
+    temp: Math.floor(v * 100),
   });
 }
 
@@ -31,7 +31,7 @@ const formatData = (datapoints) => {
   return datapoints.map((point) => {
     return {
       date: moment.format(),
-      amount: point,
+      temp: point,
     };
   });
 };
@@ -82,7 +82,7 @@ const Pact = ({ address }) => {
     }
     data_points = data_values.map((data_point, idx) => {
       return {
-        amount: -data_point,
+        temp: -data_point,
         date: date_values[idx],
       };
     });
@@ -118,20 +118,24 @@ const Pact = ({ address }) => {
       setLoading(true);
       const _signerAddress = await signer.getAddress();
       const temp_data_bn = await pact.connect(signer).getTempDataArray(_signerAddress);
+      const comp_data_bn = await pact.connect(signer).getComplianceDataArray(_signerAddress);
       setLoading(false);
 
       console.log(temp_data_bn.length);
 
       let temp_data_num = [];
       let temp_data_cnt = [];
+      let comp_data_num = [];
       for (let i=0; i< temp_data_bn.length; i++) {
         temp_data_num[i] = temp_data_bn[i].toNumber();
+        comp_data_num[i] = comp_data_bn[i].toNumber();
         temp_data_cnt[i] = i;
       }
       console.log(temp_data_num);
       let data_points = temp_data_num.map((data_point, idx) => {
         return {
-          amount: data_point,
+          temp: data_point,
+          comp: comp_data_num[idx],
           date: temp_data_cnt[idx],
         };
       });
@@ -200,34 +204,60 @@ const Pact = ({ address }) => {
                 ),
               },
               {
-                property: "amount",
-                render: (amount) => (
+                property: "temp",
+                render: (temp) => (
                   <Box pad="xsmall" align="start">
-                    <Text>{amount}</Text>
+                    <Text>{temp}</Text>
+                  </Box>
+                ),
+              },
+              {
+                property: "comp",
+                render: (temp) => (
+                  <Box pad="xsmall" align="start">
+                    <Text>{temp}</Text>
                   </Box>
                 ),
               },
             ]}
             chart={[
+              /*
               {
-                property: "amount",
+                property: "temp",
                 type: "area",
                 thickness: "xsmall",
                 color: "graph-0",
                 opacity: "medium",
               },
+              */
               {
-                property: "amount",
+                property: "temp",
                 type: "line",
                 thickness: "xsmall",
                 round: true,
               },
-              { property: "amount", type: "bar", thickness: "hair" },
+              /*
+              { property: "temp", type: "bar", thickness: "hair" },
+              */
               {
-                property: "amount",
+                property: "temp",
                 type: "point",
                 round: true,
-                thickness: "medium",
+                thickness: "small",
+              },
+              {
+                property: "comp",
+                type: "line",
+                color:"blue",
+                thickness: "xsmall",
+                round: true,
+              },
+              {
+                property: "comp",
+                type: "point",
+                color:"blue",
+                round: true,
+                thickness: "small",
               },
             ]}
             guide={{
@@ -238,7 +268,7 @@ const Pact = ({ address }) => {
             bounds="align"
             gap="xsmall"
             pad="small"
-            size={{ width: "large", height: "large" }}
+            size={{ width: "xlarge", height: "large" }}
             margin="small"
             detail
           />
