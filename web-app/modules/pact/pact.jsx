@@ -44,7 +44,7 @@ export const PACT_STATES = {
 };
 
 const Pact = ({ address }) => {
-  address = "whatever test for now";
+  address = "0x50950a93be7BbC951fe7968d30Ce5dF88cB57387";
 
   // Web3
   const { provider } = useContext(ProviderContext);
@@ -87,6 +87,7 @@ const Pact = ({ address }) => {
       };
     });
     // TODO remove; debug for now;
+    console.log("data points")
     console.log(data_points);
     setGridLoad(data_points);
     return data_points;
@@ -94,11 +95,12 @@ const Pact = ({ address }) => {
 
   // TODO remove; debug for now;
   useEffect(() => {
-    getEIAData();
+    //getGraphEIAData();
   }, []);
 
   useEffect(() => {
     if (address === null || provider === null || signer === null) {
+      console.log(address);
       return;
     }
     const contractAddress = ethers.utils.getAddress(address);
@@ -108,17 +110,40 @@ const Pact = ({ address }) => {
 
   useEffect(() => {
     if (pact === null || signer === null) {
+      console.log("hi")
       return;
     }
 
     async function setData() {
       setLoading(true);
+      const _signerAddress = await signer.getAddress();
+      const temp_data_bn = await pact.connect(signer).getTempDataArray(_signerAddress);
+      setLoading(false);
+
+      console.log(temp_data_bn.length);
+
+      let temp_data_num = [];
+      let temp_data_cnt = [];
+      for (let i=0; i< temp_data_bn.length; i++) {
+        temp_data_num[i] = temp_data_bn[i].toNumber();
+        temp_data_cnt[i] = i;
+      }
+      console.log(temp_data_num);
+      let data_points = temp_data_num.map((data_point, idx) => {
+        return {
+          amount: data_point,
+          date: temp_data_cnt[idx],
+        };
+      });
+      console.log(data_points);
+      setGridLoad(data_points);
+      /*
       const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
         await pact.connect(signer).EIARegion(),
         await signer.getAddress(),
         await pact.connect(signer).PactState(),
       ]);
-      setLoading(false);
+
       const _nestData = await pact
         .connect(signer)
         .userAddressToNestData(_signerAddress);
@@ -143,6 +168,7 @@ const Pact = ({ address }) => {
         // eslint-disable-next-line no-underscore-dangle
         setPactState(PACT_STATES[_pactState]);
       }
+      */
     }
     setData();
   }, [pact, signer]);
