@@ -18,7 +18,6 @@ const SidebarButton = ({ label, ...rest }) => (
 const navMap = {
   'Home': 'gateway',
   'Leaderboard': 'leaderboard',
-  'Available Campaigns': 'listings',
   'My Progress': 'pact'
 }
 

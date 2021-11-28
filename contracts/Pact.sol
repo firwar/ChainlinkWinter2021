@@ -48,6 +48,7 @@ contract Pact is Ownable, ChainlinkClient {
     event RequestingNestData(uint numberOfNestRequests);
     event CalculatingUserCompliance(address user, bool compliant);
     event RequestingEIAData();
+    event PactJoined(address user);
 
     PactState public pactState;
 
@@ -69,7 +70,7 @@ contract Pact is Ownable, ChainlinkClient {
     mapping (uint256 => uint256) private cycleToEnergyCount;
 
     mapping ( address => NestData[] ) public userAddressToNestData;
-    
+
     mapping ( address => PactState ) public userAddressToPactState;
 
     // demand data stored
@@ -130,12 +131,12 @@ contract Pact is Ownable, ChainlinkClient {
         demandCoolSetpoint = 80;
     }
 
-    function joinPact(uint256 _region, address nestAddress) external {
-
+    function joinPact(uint256 _region) external {
         participants.push(msg.sender);
         userAddressToPactState[msg.sender] = PactState.Idle;
+        emit PactJoined(msg.sender);
     }
- 
+
     function startNewCycle() external onlyOwner {
 
     }
@@ -261,18 +262,18 @@ contract Pact is Ownable, ChainlinkClient {
             if (demandDataLength == 0) {
                 return;
             }
-            
+
             // If the latest demand data is greater than the threshold
             if (regionToDemandData[0][demandDataLength-1] > demandThreshold) {
                 if (userAddressToPactState[userAddress] != PactState.Disabled) {
-                    
+
                     uint256 nestDataArrayLength = userAddressToNestData[userAddress].length;
                     // No nest data yet
                     if (nestDataArrayLength == 0) {
                         return;
                     }
                     // Check if user is within set points
-                    if (userAddressToNestData[userAddress][nestDataArrayLength-1].heatSetpoint <= demandHeatSetpoint && 
+                    if (userAddressToNestData[userAddress][nestDataArrayLength-1].heatSetpoint <= demandHeatSetpoint &&
                         userAddressToNestData[userAddress][nestDataArrayLength-1].coolSetpoint >= demandCoolSetpoint) {
                         userAddressToEnergyCountCycle[userAddress]++;
                         userAddressToComplianceData[userAddress].push(1);
@@ -342,7 +343,7 @@ contract Pact is Ownable, ChainlinkClient {
         }
         */
         request.add("path", "series.0.data.0.1");
-       
+
         // Sends the request
         return sendChainlinkRequestTo(EIAOracle, request, EIAFee);
     }
@@ -402,7 +403,7 @@ contract Pact is Ownable, ChainlinkClient {
      *
      * Locates and returns the position of a character within a string starting
      * from a defined offset
-     * 
+     *
      * @param _base When being used for a data type this is the extended object
      *              otherwise this is the string acting as the haystack to be
      *              searched
