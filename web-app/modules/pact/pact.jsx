@@ -9,6 +9,7 @@ import {
   DataChart,
   Text,
   Spinner,
+  Button,
 } from "grommet";
 import { ethers } from "ethers";
 import { Contract } from "@ethersproject/contracts";
@@ -53,6 +54,7 @@ const Pact = ({ address }) => {
 
   // Helpers for UX/UI
   const [loading, setLoading] = useState(false);
+  const [joinedPact, setJoinedPact] = useState(false);
 
   // Contract Information
   const [eiaRegion, setEiaRegion] = useState();
@@ -61,12 +63,12 @@ const Pact = ({ address }) => {
   const [complianceData, setComplianceData] = useState([]);
   const [gridLoad, setGridLoad] = useState([]);
 
-  const getEIAData = async () => {
-    const start = "11192021 08:00";
+  const getEIAData = async (startDate = "11192021 08:00") => {
+    // const start = moment().utc().add(-7, "days").format("MMDDYYYY HH:00:00");
     const end = moment().utc().format("MMDDYYYY HH:00:00");
     console.log(end);
     const response = await fetch(
-      `https://www.eia.gov/electricity/930-api/region_data/series_data?type[0]=TI&respondent[0]=LDWP&start=11192021 08:00:00&end=${end}&frequency=hourly&timezone=Pacific&limit=10000&offset=0`
+      `https://www.eia.gov/electricity/930-api/region_data/series_data?type[0]=TI&respondent[0]=LDWP&start=${startDate}&end=${end}&frequency=hourly&timezone=Pacific&limit=10000&offset=0`
     );
     const jsonData = await response.json();
     const data = jsonData[0];
@@ -91,6 +93,56 @@ const Pact = ({ address }) => {
     console.log(data_points);
     setGridLoad(data_points);
     return data_points;
+  };
+
+  const setData = async () => {
+    setLoading(true);
+    const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
+      await pact.connect(signer).EIARegion(),
+      await signer.getAddress(),
+      await pact.connect(signer).PactState(),
+    ]);
+    setLoading(false);
+    const _nestData = await pact
+      .connect(signer)
+      .userAddressToNestData(_signerAddress);
+    const _complianceData = await pact
+      .connect(signer)
+      .userAddressToComplianceData(_signerAddress);
+    const _participants = await pact.connect(signer).participants();
+
+    setEiaRegion(_eiaRegion);
+    // TODO parse out the nest data
+    // struct NestData {
+    //   uint mode;
+    //   uint temperature;
+    //   uint heatSetpoint;
+    //   uint coolSetpoint;
+    // }
+    // Dates + Total Interchange(TI)
+    const eiaData = await getEIAData();
+    setNestData(_nestData);
+    setComplianceData(_complianceData);
+    // eslint-disable-next-line no-prototype-builtins
+    if (PACT_STATES.hasOwnProperty(_pactState)) {
+      // eslint-disable-next-line no-underscore-dangle
+      setPactState(PACT_STATES[_pactState]);
+    }
+    setJoinedPact(_participants.indexOf(_signerAddress) !== -1);
+  };
+
+  const joinPact = async () => {
+    if (pact === null || signer === null) {
+      return;
+    }
+
+    pact.removeAllListeners("PactJoined");
+    pact.on("PactJoined", async (joinedAddress) => {
+      setData();
+    });
+
+    await pact.connect(signer).joinPact(0);
+    setLoading(true);
   };
 
   // TODO remove; debug for now;
@@ -180,7 +232,7 @@ const Pact = ({ address }) => {
   // TODO show the compliance on hover
   return (
     <Grommet>
-      {!loading && (
+      {!loading && !joinedPact && (
         <Box
           direction="row-responsive"
           justify="center"
@@ -272,6 +324,11 @@ const Pact = ({ address }) => {
             margin="small"
             detail
           />
+        </Box>
+      )}
+      {!loading && joinedPact && (
+        <Box fill pad="large" align="center" justify="center" gap="medium">
+          <Button primary label="Join Campaign" onClick={joinPact} />
         </Box>
       )}
       {loading && (
