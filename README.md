@@ -15,7 +15,7 @@ With the global environment deteriorating everyday, it has become more and more 
 # Solution
 In EnergyLink, this smart contract is deployed by a power company or government body for its customers, for example this could be the Los Angeles Department of Water and Power. Customers that have a smart thermostat (i.e. Google Nest) can join this contract, giving control of their thermostat, and transparently earn rewards.
 
-![alt text](EnergyLinkBlockDiagram.jpg)
+![alt text](EnergyLinkBlockDiagram.JPG)
 
 The overall flow is the following:
 1. Power company or department of energy deploys and funds EnergyLink contract
