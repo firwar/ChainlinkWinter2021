@@ -6,10 +6,15 @@ async function main() {
     deployer.address,
   );
 
+  let region = 0;
+  let reward = 0;
+
+
   console.log('Account balance:', (await deployer.getBalance()).toString());
 
   const Pact = await ethers.getContractFactory('Pact');
-  const pact = await Pact.deploy();
+  const pact = await Pact.deploy(deployer.address, region, reward);
+
 
   console.log('Pact address:', pact.address);
 

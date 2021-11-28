@@ -10,12 +10,13 @@
     const Pact = await ethers.getContractFactory("Pact")
 
     // Edit deployed gateway address here
-    const contract = await Pact.attach("0x9488548bA591Eabe11b94C2788CD9a144f68e127")
+    const contract = await Pact.attach("0x50950a93be7BbC951fe7968d30Ce5dF88cB57387")
 
-    await contract.userAddressToNestData(deployer.address,0)
+    await contract.populateParticipant(deployer.address);
+    //await contract.userAddressToNestData(deployer.address,0)
 
 //    await contract.connect(deployer).requestGoogleNestData(deployer.address)
 
-    console.log(ethers.utils.formatEther(await contract.regionToDemandData(0,0)))
+    //console.log(ethers.utils.formatEther(await contract.regionToDemandData(0,0)))
     //console.log(ethers.utils.formatEther(await contract.regionToDemandData(0,0))):w
     
