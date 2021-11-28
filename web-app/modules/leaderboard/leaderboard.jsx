@@ -24,6 +24,8 @@ import moment from "moment";
 const reducer = (previousValue, currentValue) => previousValue + currentValue;
 
 const Leaderboard = ({ address }) => {
+  
+  address = "0x757341e5FD0E5604bF183b5CaA2d8144059c727b";
   // Web3
   const { provider } = useContext(ProviderContext);
   const { signer } = useContext(SignerContext);
@@ -42,20 +44,28 @@ const Leaderboard = ({ address }) => {
   const getLeaderboard = async () => {
     setLoading(true);
 
-    const _allComplianceData = await pact
+    // TODO:
+    const participants = await pact.connect(signer).getParticipants();
+    console.log(participants);
+
+    let complianceData = [];
+    // Populate compliance array
+    for (let i =0; i<participants.length; i++) {
+      complianceData[i] = (await pact
       .connect(signer)
-      .userAddressToComplianceData();
+      .userAddressToEnergyCountCycle(participants[i])).toNumber();
+    }
 
-    console.log(_allComplianceData);
-
+    console.log(complianceData);
     // Create leaderboard
     const datapoints = [];
-    Object.keys(_allComplianceData).forEach((userAddr) => {
+    participants.forEach((userAddr, idx) => {
       datapoints.push({
         name: userAddr,
-        value: _allComplianceData[userAddr].reduce(reducer),
+        value: complianceData[idx],
       });
     });
+    datapoints.sort((a,b) => b.value - a.value);
     setData(datapoints);
     setLoading(false);
   };
@@ -64,6 +74,8 @@ const Leaderboard = ({ address }) => {
     if (address === null || provider === null || signer === null) {
       return;
     }
+    console.log("address");
+    console.log(address);
     const contractAddress = ethers.utils.getAddress(address);
     const newPact = new Contract(contractAddress, abis.Pact.abi, provider);
     setPact(newPact);
@@ -80,6 +92,7 @@ const Leaderboard = ({ address }) => {
   return (
     <Grommet>
       {!loading && (
+
         <DataTable
           columns={[
             {
@@ -90,6 +103,7 @@ const Leaderboard = ({ address }) => {
             {
               property: "value",
               header: "Compliance",
+              /*
               render: (datum) => (
                 <Box pad={{ vertical: "xsmall" }}>
                   <Meter
@@ -98,7 +112,7 @@ const Leaderboard = ({ address }) => {
                     size="small"
                   />
                 </Box>
-              ),
+              ),*/
             },
           ]}
           data={data}
