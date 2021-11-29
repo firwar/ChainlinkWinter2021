@@ -81,6 +81,7 @@ function MyApp({ Component, pageProps }) {
     setOpen(false);
     clearTimeout(toastTimeout);
   };
+
   /*
   const styles={
     position:'fixed'
@@ -117,6 +118,7 @@ function MyApp({ Component, pageProps }) {
                     </Box>
                     {sidebar && (
                       <Box
+                        alignContent="between"
                         gridArea="sidebar"
                         background="neutral-2"
                         width="small"

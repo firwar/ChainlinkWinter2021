@@ -236,6 +236,7 @@ const Pact = ({ address }) => {
       */
     }
     setData();
+    // getEIAData();
   }, [pact, signer]);
 
   // TODO show the compliance on hover
@@ -244,8 +245,25 @@ const Pact = ({ address }) => {
       {!loading && joinedPact && signer != null && (
         <Box direction="column" pad="medium">
           <Box direction="row-responsive" pad="medium">
-            <Box direction="row-responsive" align="left" pad="medium">
-              <Button primary label="Current Rewards: 1" alignSelf="start" />
+            <Box
+              direction="row-responsive"
+              align="left"
+              alignSelf="start"
+              pad="medium"
+            >
+              <Button
+                primary
+                label="Current Rewards: 1 LINK"
+                alignSelf="start"
+              />
+            </Box>
+            <Box
+              direction="row-responsive"
+              align="right"
+              alignSelf="end"
+              pad="medium"
+            >
+              <Button primary label="Disable Pact" alignSelf="start" />
             </Box>
           </Box>
           <DataChart

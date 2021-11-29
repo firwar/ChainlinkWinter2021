@@ -26,7 +26,7 @@ const placeProps = (name, color, showDrop) => ({
         content: (
           <Box pad={{ horizontal: "small", vertical: "xsmall" }}>
             <Text>{name}</Text>
-            <Text>Energy Saved: 100MWH</Text>
+            <Text>Energy Saved: 1MWH</Text>
             <Text>Participants: 2</Text>
           </Box>
         ),
