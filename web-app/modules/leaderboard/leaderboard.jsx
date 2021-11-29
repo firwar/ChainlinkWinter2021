@@ -91,18 +91,18 @@ const Leaderboard = ({ address }) => {
 
   return (
     <Grommet>
-      {!loading && (
+      {!loading && (signer!=null) && (
 
         <DataTable
           columns={[
             {
               property: "name",
-              header: <Text>Name</Text>,
+              header: <Text>Wallet</Text>,
               primary: true,
             },
             {
               property: "value",
-              header: "Compliance",
+              header: "Reward Savings (Eth)",
               /*
               render: (datum) => (
                 <Box pad={{ vertical: "xsmall" }}>
@@ -127,6 +127,12 @@ const Leaderboard = ({ address }) => {
           <Spinner size="large" />
         </Box>
       )}
+      {(signer == null) && (
+        <Box fill pad="large" align="center" justify="center" gap="medium">
+          <Heading margin="none" level="3">Please connect your wallet to use EnergyLink.</Heading>
+        </Box>
+      )}
+
     </Grommet>
   );
 };
