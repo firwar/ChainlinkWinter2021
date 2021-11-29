@@ -346,14 +346,14 @@ const Pact = ({ address }) => {
               {
                 property: "demand",
                 type: "line",
-                color: "blue",
+                color: "red",
                 thickness: "xsmall",
                 round: true,
               },
               {
                 property: "demand",
                 type: "point",
-                color: "blue",
+                color: "red",
                 round: true,
                 thickness: "small",
               },
