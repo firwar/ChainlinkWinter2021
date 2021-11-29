@@ -63,12 +63,12 @@ const Pact = ({ address }) => {
   const [complianceData, setComplianceData] = useState([]);
   const [gridLoad, setGridLoad] = useState([]);
 
-  const getEIAData = async (startDate = "11192021 08:00") => {
+  const getEIAData = async (startDate = "11262021 08:00") => {
     // const start = moment().utc().add(-7, "days").format("MMDDYYYY HH:00:00");
     const end = moment().utc().format("MMDDYYYY HH:00:00");
     console.log(end);
     const response = await fetch(
-      `https://www.eia.gov/electricity/930-api/region_data/series_data?type[0]=TI&respondent[0]=LDWP&start=${startDate}&end=${end}&frequency=hourly&timezone=Pacific&limit=10000&offset=0`
+      `https://www.eia.gov/electricity/930-api/region_data/series_data?type[0]=D&respondent[0]=LDWP&start=${startDate}&end=${end}&frequency=hourly&timezone=Pacific&limit=10000&offset=0`
     );
     const jsonData = await response.json();
     const data = jsonData[0];
@@ -84,57 +84,57 @@ const Pact = ({ address }) => {
     }
     data_points = data_values.map((data_point, idx) => {
       return {
-        temp: -data_point,
+        demand: data_point/100,
+        temp: Math.floor(75 + data_point/1000) - 2,
+        compliance: 1,
         date: date_values[idx],
       };
     });
     // TODO remove; debug for now;
     console.log("data points");
     console.log(data_points);
-    setGridLoad(data_points);
+    // setGridLoad(data_points);
     return data_points;
   };
 
-  /*
-  const buildData = async () => {
->>>>>>> ea2c32c243b766af0f8f2edd5e0c97e0a91554e9
-    setLoading(true);
-    const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
-      await pact.connect(signer).EIARegion(),
-      await signer.getAddress(),
-      await pact.connect(signer).PactState(),
-    ]);
-    setLoading(false);
-    const _nestData = await pact
-      .connect(signer)
-      .userAddressToNestData(_signerAddress);
-    const _complianceData = await pact
-      .connect(signer)
-      .userAddressToComplianceData(_signerAddress);
-    const _participants = await pact.connect(signer).participants();
+  // const buildData = async () => {
+  //   setLoading(true);
+  //   const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
+  //     await pact.connect(signer).EIARegion(),
+  //     await signer.getAddress(),
+  //     await pact.connect(signer).PactState(),
+  //   ]);
+  //   setLoading(false);
+  //   const _nestData = await pact
+  //     .connect(signer)
+  //     .userAddressToNestData(_signerAddress);
+  //   const _complianceData = await pact
+  //     .connect(signer)
+  //     .userAddressToComplianceData(_signerAddress);
+  //   const _participants = await pact.connect(signer).getParticipants();
+  //
+  //   setEiaRegion(_eiaRegion);
+  //   // TODO parse out the nest data
+  //   // struct NestData {
+  //   //   uint mode;
+  //   //   uint temperature;
+  //   //   uint heatSetpoint;
+  //   //   uint coolSetpoint;
+  //   // }
+  //   // Dates + Total Interchange(TI)
+  //   console.log(_nestData);
+  //   console.log(_complianceData);
+  //   const eiaData = await getEIAData();
+  //   setNestData(_nestData);
+  //   setComplianceData(_complianceData);
+  //   // eslint-disable-next-line no-prototype-builtins
+  //   if (PACT_STATES.hasOwnProperty(_pactState)) {
+  //     // eslint-disable-next-line no-underscore-dangle
+  //     setPactState(PACT_STATES[_pactState]);
+  //   }
+  //   setJoinedPact(_participants.indexOf(_signerAddress) !== -1);
+  // };
 
-    setEiaRegion(_eiaRegion);
-    // TODO parse out the nest data
-    // struct NestData {
-    //   uint mode;
-    //   uint temperature;
-    //   uint heatSetpoint;
-    //   uint coolSetpoint;
-    // }
-    // Dates + Total Interchange(TI)
-    console.log(_nestData);
-    console.log(_complianceData);
-    const eiaData = await getEIAData();
-    setNestData(_nestData);
-    setComplianceData(_complianceData);
-    // eslint-disable-next-line no-prototype-builtins
-    if (PACT_STATES.hasOwnProperty(_pactState)) {
-      // eslint-disable-next-line no-underscore-dangle
-      setPactState(PACT_STATES[_pactState]);
-    }
-    setJoinedPact(_participants.indexOf(_signerAddress) !== -1);
-  };
-*/
   const joinPact = async () => {
     if (pact === null || signer === null) {
       return;
@@ -184,6 +184,9 @@ const Pact = ({ address }) => {
 
       console.log(temp_data_bn.length);
 
+      const eiaData = await getEIAData();
+      console.log(eiaData);
+
       let temp_data_num = [];
       let temp_data_cnt = [];
       let comp_data_num = [];
@@ -196,12 +199,12 @@ const Pact = ({ address }) => {
       let data_points = temp_data_num.map((data_point, idx) => {
         return {
           temp: data_point,
-          comp: comp_data_num[idx],
+          compliance: comp_data_num[idx],
           date: temp_data_cnt[idx],
         };
       });
       console.log(data_points);
-      setGridLoad(data_points);
+      setGridLoad(eiaData);
       /*
       const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
         await pact.connect(signer).EIARegion(),
@@ -236,7 +239,6 @@ const Pact = ({ address }) => {
       */
     }
     setData();
-    // getEIAData();
   }, [pact, signer]);
 
   // TODO show the compliance on hover
@@ -244,7 +246,7 @@ const Pact = ({ address }) => {
     <Grommet>
       {!loading && joinedPact && signer != null && (
         <Box direction="column" pad="medium">
-          <Box direction="row-responsive" pad="medium">
+          <Box direction="row-responsive" pad="medium" gap="large" justifyContent="space-between">
             <Box
               direction="row-responsive"
               align="left"
@@ -278,6 +280,7 @@ const Pact = ({ address }) => {
                       {new Date(date).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
+                        hour: "numeric",
                       })}
                     </Text>
                   </Box>
@@ -292,16 +295,15 @@ const Pact = ({ address }) => {
                 ),
               },
               {
-                property: "comp",
-                render: (temp) => (
+                property: "demand",
+                render: (demand) => (
                   <Box pad="xsmall" align="start">
-                    <Text>{temp}</Text>
+                    <Text>{demand * 100}</Text>
                   </Box>
                 ),
               },
             ]}
             chart={[
-              /*
               {
                 property: "temp",
                 type: "area",
@@ -309,16 +311,13 @@ const Pact = ({ address }) => {
                 color: "graph-0",
                 opacity: "medium",
               },
-              */
               {
                 property: "temp",
                 type: "line",
                 thickness: "xsmall",
                 round: true,
               },
-              /*
               { property: "temp", type: "bar", thickness: "hair" },
-              */
               {
                 property: "temp",
                 type: "point",
@@ -326,16 +325,16 @@ const Pact = ({ address }) => {
                 thickness: "small",
               },
               {
-                property: "comp",
+                property: "demand",
                 type: "line",
-                color: "blue",
+                color: "red",
                 thickness: "xsmall",
                 round: true,
               },
               {
-                property: "comp",
+                property: "demand",
                 type: "point",
-                color: "blue",
+                color: "red",
                 round: true,
                 thickness: "small",
               },
