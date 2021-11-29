@@ -24,7 +24,6 @@ import moment from "moment";
 const reducer = (previousValue, currentValue) => previousValue + currentValue;
 
 const Leaderboard = ({ address }) => {
-  
   address = "0x757341e5FD0E5604bF183b5CaA2d8144059c727b";
   // Web3
   const { provider } = useContext(ProviderContext);
@@ -34,12 +33,7 @@ const Leaderboard = ({ address }) => {
   // Helpers for UX/UI
   const [loading, setLoading] = useState(false);
 
-  const [data, setData] = useState([
-    { name: "Alan", value: 20 },
-    { name: "Bryan", value: 30 },
-    { name: "Chris", value: 40 },
-    { name: "Eric", value: 80 },
-  ]);
+  const [data, setData] = useState([]);
 
   const getLeaderboard = async () => {
     setLoading(true);
@@ -50,10 +44,12 @@ const Leaderboard = ({ address }) => {
 
     let complianceData = [];
     // Populate compliance array
-    for (let i =0; i<participants.length; i++) {
-      complianceData[i] = (await pact
-      .connect(signer)
-      .userAddressToEnergyCountCycle(participants[i])).toNumber();
+    for (let i = 0; i < participants.length; i++) {
+      complianceData[i] = (
+        await pact
+          .connect(signer)
+          .userAddressToEnergyCountCycle(participants[i])
+      ).toNumber();
     }
 
     console.log(complianceData);
@@ -65,7 +61,7 @@ const Leaderboard = ({ address }) => {
         value: complianceData[idx],
       });
     });
-    datapoints.sort((a,b) => b.value - a.value);
+    datapoints.sort((a, b) => b.value - a.value);
     setData(datapoints);
     setLoading(false);
   };
@@ -91,18 +87,17 @@ const Leaderboard = ({ address }) => {
 
   return (
     <Grommet>
-      {!loading && (
-
+      {!loading && signer != null && (
         <DataTable
           columns={[
             {
               property: "name",
-              header: <Text>Name</Text>,
+              header: <Text>Wallet</Text>,
               primary: true,
             },
             {
               property: "value",
-              header: "Compliance",
+              header: "Reward Savings (Eth)",
               /*
               render: (datum) => (
                 <Box pad={{ vertical: "xsmall" }}>
@@ -125,6 +120,13 @@ const Leaderboard = ({ address }) => {
       {loading && (
         <Box fill pad="large" align="center" justify="center" gap="medium">
           <Spinner size="large" />
+        </Box>
+      )}
+      {signer == null && (
+        <Box fill pad="large" align="center" justify="center" gap="medium">
+          <Heading margin="none" level="3">
+            Please connect your wallet to use EnergyLink.
+          </Heading>
         </Box>
       )}
     </Grommet>

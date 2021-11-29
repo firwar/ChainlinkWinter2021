@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
+  Button,
   Grid,
   grommet,
   Grommet,
@@ -9,7 +10,6 @@ import {
   DataChart,
   Text,
   Spinner,
-  Button,
 } from "grommet";
 import { ethers } from "ethers";
 import { Contract } from "@ethersproject/contracts";
@@ -95,7 +95,9 @@ const Pact = ({ address }) => {
     return data_points;
   };
 
+  /*
   const buildData = async () => {
+>>>>>>> ea2c32c243b766af0f8f2edd5e0c97e0a91554e9
     setLoading(true);
     const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
       await pact.connect(signer).EIARegion(),
@@ -132,7 +134,7 @@ const Pact = ({ address }) => {
     }
     setJoinedPact(_participants.indexOf(_signerAddress) !== -1);
   };
-
+*/
   const joinPact = async () => {
     if (pact === null || signer === null) {
       return;
@@ -168,8 +170,10 @@ const Pact = ({ address }) => {
     }
 
     async function setData() {
-      setLoading(true);
       const _signerAddress = await signer.getAddress();
+      const _participants = await pact.connect(signer).getParticipants();
+      setJoinedPact(_participants.indexOf(_signerAddress) !== -1);
+      setLoading(true);
       const temp_data_bn = await pact
         .connect(signer)
         .getTempDataArray(_signerAddress);
@@ -237,15 +241,16 @@ const Pact = ({ address }) => {
   // TODO show the compliance on hover
   return (
     <Grommet>
-      {!loading && !joinedPact && (
-        <Box
-          direction="row-responsive"
-          justify="center"
-          align="center"
-          pad="medium"
-        >
+      {!loading && joinedPact && signer != null && (
+        <Box direction="column" pad="medium">
+          <Box direction="row-responsive" pad="medium">
+            <Box direction="row-responsive" align="left" pad="medium">
+              <Button primary label="Current Rewards: 1" alignSelf="start" />
+            </Box>
+          </Box>
           <DataChart
             data={gridLoad}
+            legend={true}
             series={[
               {
                 property: "date",
@@ -318,7 +323,7 @@ const Pact = ({ address }) => {
               },
             ]}
             guide={{
-              y: { granularity: "medium" },
+              y: { granularity: "fine" },
               x: { granularity: "medium" },
             }}
             alignSelf="center"
@@ -326,12 +331,13 @@ const Pact = ({ address }) => {
             gap="xsmall"
             pad="small"
             size={{ width: "xlarge", height: "large" }}
+            axis={{ x: "date", y: { property: "temp", granularity: "fine" } }}
             margin="small"
             detail
           />
         </Box>
       )}
-      {!loading && joinedPact && (
+      {!loading && !joinedPact && signer != null && (
         <Box fill pad="large" align="center" justify="center" gap="medium">
           <Button primary label="Join Campaign" onClick={joinPact} />
         </Box>
@@ -339,6 +345,13 @@ const Pact = ({ address }) => {
       {loading && (
         <Box fill pad="large" align="center" justify="center" gap="medium">
           <Spinner size="large" />
+        </Box>
+      )}
+      {signer == null && (
+        <Box fill pad="large" align="center" justify="center" gap="medium">
+          <Heading margin="none" level="3">
+            Please connect your wallet to use EnergyLink.
+          </Heading>
         </Box>
       )}
     </Grommet>
