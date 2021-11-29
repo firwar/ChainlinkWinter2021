@@ -89,13 +89,13 @@ const Pact = ({ address }) => {
       };
     });
     // TODO remove; debug for now;
-    console.log("data points")
+    console.log("data points");
     console.log(data_points);
     setGridLoad(data_points);
     return data_points;
   };
 
-  const setData = async () => {
+  const buildData = async () => {
     setLoading(true);
     const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
       await pact.connect(signer).EIARegion(),
@@ -120,6 +120,8 @@ const Pact = ({ address }) => {
     //   uint coolSetpoint;
     // }
     // Dates + Total Interchange(TI)
+    console.log(_nestData);
+    console.log(_complianceData);
     const eiaData = await getEIAData();
     setNestData(_nestData);
     setComplianceData(_complianceData);
@@ -162,15 +164,18 @@ const Pact = ({ address }) => {
 
   useEffect(() => {
     if (pact === null || signer === null) {
-      console.log("hi")
       return;
     }
 
     async function setData() {
       setLoading(true);
       const _signerAddress = await signer.getAddress();
-      const temp_data_bn = await pact.connect(signer).getTempDataArray(_signerAddress);
-      const comp_data_bn = await pact.connect(signer).getComplianceDataArray(_signerAddress);
+      const temp_data_bn = await pact
+        .connect(signer)
+        .getTempDataArray(_signerAddress);
+      const comp_data_bn = await pact
+        .connect(signer)
+        .getComplianceDataArray(_signerAddress);
       setLoading(false);
 
       console.log(temp_data_bn.length);
@@ -178,7 +183,7 @@ const Pact = ({ address }) => {
       let temp_data_num = [];
       let temp_data_cnt = [];
       let comp_data_num = [];
-      for (let i=0; i< temp_data_bn.length; i++) {
+      for (let i = 0; i < temp_data_bn.length; i++) {
         temp_data_num[i] = temp_data_bn[i].toNumber();
         comp_data_num[i] = comp_data_bn[i].toNumber();
         temp_data_cnt[i] = i;
@@ -300,14 +305,14 @@ const Pact = ({ address }) => {
               {
                 property: "comp",
                 type: "line",
-                color:"blue",
+                color: "blue",
                 thickness: "xsmall",
                 round: true,
               },
               {
                 property: "comp",
                 type: "point",
-                color:"blue",
+                color: "blue",
                 round: true,
                 thickness: "small",
               },
