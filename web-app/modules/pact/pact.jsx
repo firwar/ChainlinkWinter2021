@@ -84,8 +84,8 @@ const Pact = ({ address }) => {
     }
     data_points = data_values.map((data_point, idx) => {
       return {
-        demand: data_point/100,
-        temp: Math.floor(75 + data_point/1000) - 2,
+        demand: data_point / 100,
+        temp: Math.floor(75 + data_point / 1000) - 2,
         compliance: 1,
         date: date_values[idx],
       };
@@ -93,8 +93,21 @@ const Pact = ({ address }) => {
     // TODO remove; debug for now;
     console.log("data points");
     console.log(data_points);
-    // setGridLoad(data_points);
-    return data_points;
+    let bad_compliance = [];
+    // let bad_data = data_points.splice(5, 5);
+    // console.log(bad_data);
+    // bad_data = bad_data.concat(data_points.splice(10, 5));
+    // console.log(bad_data)
+    // const bad_compliance = bad_data.map((dp) => {
+    //   return {
+    //     bad_demand: dp.demand,
+    //     bad_temp: dp.temp,
+    //     compliance: 0,
+    //     date: dp.date,
+    //   };
+    // });
+    // data_points = data_points.concat(bad_compliance);
+    return { bad_compliance, data_points };
   };
 
   // const buildData = async () => {
@@ -187,24 +200,25 @@ const Pact = ({ address }) => {
       const eiaData = await getEIAData();
       console.log(eiaData);
 
-      let temp_data_num = [];
-      let temp_data_cnt = [];
-      let comp_data_num = [];
-      for (let i = 0; i < temp_data_bn.length; i++) {
-        temp_data_num[i] = temp_data_bn[i].toNumber();
-        comp_data_num[i] = comp_data_bn[i].toNumber();
-        temp_data_cnt[i] = i;
-      }
-      console.log(temp_data_num);
-      let data_points = temp_data_num.map((data_point, idx) => {
-        return {
-          temp: data_point,
-          compliance: comp_data_num[idx],
-          date: temp_data_cnt[idx],
-        };
-      });
-      console.log(data_points);
-      setGridLoad(eiaData);
+      // let temp_data_num = [];
+      // let temp_data_cnt = [];
+      // let comp_data_num = [];
+      // for (let i = 0; i < temp_data_bn.length; i++) {
+      //   temp_data_num[i] = temp_data_bn[i].toNumber();
+      //   comp_data_num[i] = comp_data_bn[i].toNumber();
+      //   temp_data_cnt[i] = i;
+      // }
+      // console.log(temp_data_num);
+      // let data_points = temp_data_num.map((data_point, idx) => {
+      //   return {
+      //     temp: data_point,
+      //     compliance: comp_data_num[idx],
+      //     date: temp_data_cnt[idx],
+      //   };
+      // });
+      // console.log(data_points);
+      setGridLoad(eiaData.data_points);
+
       /*
       const [_eiaRegion, _signerAddress, _pactState] = await Promise.all([
         await pact.connect(signer).EIARegion(),
@@ -246,7 +260,12 @@ const Pact = ({ address }) => {
     <Grommet>
       {!loading && joinedPact && signer != null && (
         <Box direction="column" pad="medium">
-          <Box direction="row-responsive" pad="medium" gap="large" justifyContent="space-between">
+          <Box
+            direction="row-responsive"
+            pad="medium"
+            gap="large"
+            justifyContent="space-between"
+          >
             <Box
               direction="row-responsive"
               align="left"
@@ -327,14 +346,14 @@ const Pact = ({ address }) => {
               {
                 property: "demand",
                 type: "line",
-                color: "red",
+                color: "blue",
                 thickness: "xsmall",
                 round: true,
               },
               {
                 property: "demand",
                 type: "point",
-                color: "red",
+                color: "blue",
                 round: true,
                 thickness: "small",
               },

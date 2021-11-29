@@ -97,7 +97,7 @@ const Leaderboard = ({ address }) => {
             },
             {
               property: "value",
-              header: "Reward Savings (Eth)",
+              header: "Reward Savings (LINK)",
               /*
               render: (datum) => (
                 <Box pad={{ vertical: "xsmall" }}>
